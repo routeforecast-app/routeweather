@@ -1,0 +1,23 @@
+{
+  "name": "RouteForcast",
+  "short_name": "RouteForcast",
+  "description": "Upload GPX routes and inspect weather forecasts along the route.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4fbfb",
+  "theme_color": "#0d6c74",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

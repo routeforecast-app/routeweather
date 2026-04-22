@@ -1,0 +1,6 @@
+{
+  "to_email": "old-email@example.com",
+  "subject": "RouteWeather account email changed",
+  "body": "Hello Casey,\n\nYour account email has been changed from old-email@example.com to new-email@example.com by RouteWeather support.\nIf you did not request this, please contact support immediately.",
+  "queued_at": "2026-04-22T20:13:21.874007+00:00"
+}

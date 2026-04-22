@@ -1,0 +1,6 @@
+{
+  "to_email": "new-email@example.com",
+  "subject": "RouteForcast password reset",
+  "body": "Hello Casey,\n\nA password reset has been requested for your RouteForcast account.\nReason: Support-assisted account recovery after email change\n\nUse this reset link:\nhttp://127.0.0.1:5173/reset-password?token=tnBZvP_vOFMseJq7TD7F6BRB-RkTYFJbFCGdaRKlDs0\n\nThis link expires in 120 minutes.",
+  "queued_at": "2026-04-22T21:25:12.009689+00:00"
+}

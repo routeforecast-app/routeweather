@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title>RouteWeather icon</title>
+  <rect width="256" height="256" rx="56" fill="#0d6c74" />
+  <path d="M48 170c24-42 61-71 104-86 22-8 40-10 56-10" fill="none" stroke="#dff6f4" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+  <circle cx="54" cy="174" r="18" fill="#ffbe6b"/>
+  <circle cx="164" cy="94" r="16" fill="#ffbe6b"/>
+  <path d="M142 178h42a24 24 0 0 0 2-48 34 34 0 0 0-64-10 28 28 0 0 0-8-2 26 26 0 0 0 0 52h12" fill="#ffffff"/>
+</svg>

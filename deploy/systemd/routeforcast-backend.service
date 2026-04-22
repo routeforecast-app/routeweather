@@ -1,0 +1,18 @@
+[Unit]
+Description=RouteForcast FastAPI backend
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/routeforcast/current/backend
+EnvironmentFile=/var/www/routeforcast/shared/backend.env
+ExecStart=/var/www/routeforcast/venv/bin/gunicorn -c gunicorn.conf.py app.main:app
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+

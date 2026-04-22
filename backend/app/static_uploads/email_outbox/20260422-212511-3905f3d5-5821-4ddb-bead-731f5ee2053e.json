@@ -1,0 +1,6 @@
+{
+  "to_email": "old-email@example.com",
+  "subject": "RouteForcast account email changed",
+  "body": "Hello Casey,\n\nYour account email has been changed from old-email@example.com to new-email@example.com by RouteForcast support.\nIf you did not request this, please contact support immediately.",
+  "queued_at": "2026-04-22T21:25:11.815474+00:00"
+}

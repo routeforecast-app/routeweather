@@ -1,0 +1,6 @@
+{
+  "to_email": "new-email@example.com",
+  "subject": "RouteWeather password reset",
+  "body": "Hello Casey,\n\nA password reset has been requested for your RouteWeather account.\nReason: Support-assisted account recovery after email change\n\nUse this reset link:\nhttp://127.0.0.1:5173/reset-password?token=LhhhOvry-46vfw7B9aDfdKW0-IH6T3q6f3AGWJaDPaA\n\nThis link expires in 120 minutes.",
+  "queued_at": "2026-04-22T20:27:17.140389+00:00"
+}
