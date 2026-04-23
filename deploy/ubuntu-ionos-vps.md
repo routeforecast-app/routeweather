@@ -62,7 +62,8 @@ python3 -m venv /var/www/routeforcast/venv
 Create `/var/www/routeforcast/shared/backend.env`:
 
 ```bash
-sudo nano /var/www/routeforcast/shared/backend.env
+cp /var/www/routeforcast/current/deploy/backend.env.routeforcast.example /var/www/routeforcast/shared/backend.env
+nano /var/www/routeforcast/shared/backend.env
 ```
 
 Recommended starting content:
@@ -74,12 +75,21 @@ ACCESS_TOKEN_EXPIRE_MINUTES=720
 CORS_ORIGINS=["https://routeforcast.co.uk","https://www.routeforcast.co.uk"]
 FRONTEND_APP_URL=https://routeforcast.co.uk
 EMAIL_OUTBOX_DIR=./app/static_uploads/email_outbox
+EMAIL_DELIVERY_MODE=sendgrid
+SENDGRID_API_KEY=your-sendgrid-api-key
+SENDGRID_FROM_EMAIL=no-reply@routeforcast.co.uk
+SENDGRID_FROM_NAME=RouteForcast
+SENDGRID_REPLY_TO_EMAIL=support@routeforcast.co.uk
+SENDGRID_DATA_RESIDENCY=eu
 OPEN_METEO_BASE_URL=https://api.open-meteo.com/v1/forecast
 WEATHER_CACHE_TTL_MINUTES=30
 GUNICORN_BIND=127.0.0.1:8000
 GUNICORN_WORKERS=2
 GUNICORN_TIMEOUT=120
 ```
+
+Use your real SendGrid API key only in `/var/www/routeforcast/shared/backend.env` on the VPS.
+Do not commit it into the repo.
 
 Generate a strong secret key with:
 
@@ -203,4 +213,4 @@ sudo systemctl reload nginx
 
 - SQLite is okay for a first public deployment with light traffic, but Postgres is the next thing I'd move to once usage grows.
 - Uploaded GPX files are currently stored on the VPS filesystem, so make regular backups.
-- Password reset emails are still queued locally in the email outbox directory. For public launch, connect this to a real email provider next.
+- SendGrid is now supported directly by the backend. Leave `EMAIL_DELIVERY_MODE=auto` for local development fallback, or set `EMAIL_DELIVERY_MODE=sendgrid` in production once your sender identity is verified.

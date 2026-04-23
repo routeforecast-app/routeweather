@@ -181,10 +181,12 @@ For a later public deployment:
 - Move the database to Postgres for concurrent multi-user workloads.
 - Store uploaded GPX files in object storage instead of the local filesystem.
 - Move long-running or refresh-style weather work into background jobs as usage grows.
+- Configure SendGrid in the backend environment once you're ready to send live password reset and recovery emails.
 
 For an Ubuntu VPS deployment, use:
 
 - [deploy/ubuntu-ionos-vps.md](C:/Users/User/Documents/Rout%20wether%20planner/routeweather/deploy/ubuntu-ionos-vps.md)
+- [deploy/backend.env.routeforcast.example](C:/Users/User/Documents/Rout%20wether%20planner/routeweather/deploy/backend.env.routeforcast.example)
 - [deploy/systemd/routeforcast-backend.service](C:/Users/User/Documents/Rout%20wether%20planner/routeweather/deploy/systemd/routeforcast-backend.service)
 - [deploy/nginx/routeforcast.conf](C:/Users/User/Documents/Rout%20wether%20planner/routeweather/deploy/nginx/routeforcast.conf)
 - [backend/gunicorn.conf.py](C:/Users/User/Documents/Rout%20wether%20planner/routeweather/backend/gunicorn.conf.py)

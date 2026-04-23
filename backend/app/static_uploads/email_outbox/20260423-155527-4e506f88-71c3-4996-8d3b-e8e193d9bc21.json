@@ -1,0 +1,10 @@
+{
+  "to_email": "old-email@example.com",
+  "subject": "RouteForcast account email changed",
+  "body": "Hello Casey,\n\nYour account email has been changed from old-email@example.com to new-email@example.com by RouteForcast support.\nIf you did not request this, please contact support immediately.",
+  "queued_at": "2026-04-23T15:55:27.226464+00:00",
+  "metadata": {
+    "delivery_mode": "outbox_fallback",
+    "fallback_reason": "SendGrid is not installed in this environment."
+  }
+}

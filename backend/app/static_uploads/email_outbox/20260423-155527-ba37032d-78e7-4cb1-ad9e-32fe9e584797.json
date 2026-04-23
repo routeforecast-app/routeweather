@@ -1,0 +1,10 @@
+{
+  "to_email": "new-email@example.com",
+  "subject": "RouteForcast password reset",
+  "body": "Hello Casey,\n\nA password reset has been requested for your RouteForcast account.\nReason: Support-assisted account recovery after email change\n\nUse this reset link:\nhttp://127.0.0.1:5173/reset-password?token=deOaXO0rjwSBXwivUKYqbQ_ZVNiMd-uGcsMfXqn0RG4\n\nThis link expires in 120 minutes.",
+  "queued_at": "2026-04-23T15:55:27.268614+00:00",
+  "metadata": {
+    "delivery_mode": "outbox_fallback",
+    "fallback_reason": "SendGrid is not installed in this environment."
+  }
+}

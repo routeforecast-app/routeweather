@@ -1,13 +1,23 @@
 from __future__ import annotations
 
+import html
 import hashlib
 import json
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
 from sqlmodel import Session, select
+
+try:  # pragma: no cover - exercised indirectly when dependency is installed
+    from sendgrid import SendGridAPIClient
+    from sendgrid.helpers.mail import Email, Mail
+except ImportError:  # pragma: no cover - keeps local dev usable without SendGrid
+    Email = None
+    Mail = None
+    SendGridAPIClient = None
 
 from app.config import get_settings
 from app.models import PasswordResetToken, SupportAuditLog, User
@@ -18,6 +28,7 @@ from app.utils.security import decrypt_sensitive_value, hash_lookup_value, norma
 settings = get_settings()
 email_outbox_dir = Path(settings.email_outbox_dir)
 email_outbox_dir.mkdir(parents=True, exist_ok=True)
+logger = logging.getLogger(__name__)
 
 
 def utc_now() -> datetime:
@@ -41,7 +52,7 @@ def build_password_reset_url(token: str) -> str:
     return f"{settings.frontend_app_url.rstrip('/')}/reset-password?token={token}"
 
 
-def queue_email_file(*, to_email: str, subject: str, body: str) -> Path:
+def queue_email_file(*, to_email: str, subject: str, body: str, metadata: dict | None = None) -> Path:
     filename = f"{utc_now().strftime('%Y%m%d-%H%M%S')}-{uuid4()}.json"
     outbox_file = email_outbox_dir / filename
     payload = {
@@ -50,8 +61,101 @@ def queue_email_file(*, to_email: str, subject: str, body: str) -> Path:
         "body": body,
         "queued_at": utc_now().isoformat(),
     }
+    if metadata:
+        payload["metadata"] = metadata
     outbox_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return outbox_file
+
+
+def _build_html_content(body: str) -> str:
+    paragraphs = [segment for segment in body.split("\n\n") if segment.strip()]
+    if not paragraphs:
+        return "<p></p>"
+    return "".join(f"<p>{html.escape(paragraph).replace(chr(10), '<br>')}</p>" for paragraph in paragraphs)
+
+
+def _send_email_via_sendgrid(*, to_email: str, subject: str, body: str) -> dict[str, str | int | None]:
+    if SendGridAPIClient is None or Mail is None or Email is None:
+        raise RuntimeError("SendGrid is not installed in this environment.")
+    if not settings.sendgrid_api_key:
+        raise RuntimeError("SENDGRID_API_KEY is not configured.")
+    if not settings.sendgrid_from_email:
+        raise RuntimeError("SENDGRID_FROM_EMAIL is not configured.")
+
+    from_email = (
+        Email(settings.sendgrid_from_email, settings.sendgrid_from_name)
+        if settings.sendgrid_from_name
+        else settings.sendgrid_from_email
+    )
+    message = Mail(
+        from_email=from_email,
+        to_emails=to_email,
+        subject=subject,
+        plain_text_content=body,
+        html_content=_build_html_content(body),
+    )
+    if settings.sendgrid_reply_to_email:
+        message.reply_to = Email(settings.sendgrid_reply_to_email)
+
+    sendgrid_client = SendGridAPIClient(settings.sendgrid_api_key)
+    if settings.sendgrid_data_residency and settings.sendgrid_data_residency.lower() == "eu":
+        sendgrid_client.set_sendgrid_data_residency("eu")
+
+    response = sendgrid_client.send(message)
+    return {
+        "delivery_mode": "sendgrid",
+        "sendgrid_status_code": response.status_code,
+        "sendgrid_message_id": response.headers.get("X-Message-Id"),
+    }
+
+
+def deliver_email(*, to_email: str, subject: str, body: str) -> dict[str, str | int | None]:
+    delivery_mode = settings.email_delivery_mode.strip().lower()
+    if delivery_mode not in {"auto", "outbox", "sendgrid"}:
+        delivery_mode = "auto"
+
+    if delivery_mode in {"auto", "sendgrid"}:
+        try:
+            delivery_result = _send_email_via_sendgrid(to_email=to_email, subject=subject, body=body)
+            outbox_file = queue_email_file(
+                to_email=to_email,
+                subject=subject,
+                body=body,
+                metadata=delivery_result,
+            )
+            return {
+                **delivery_result,
+                "outbox_file": str(outbox_file),
+            }
+        except Exception as exc:  # pragma: no cover - depends on env/network
+            logger.exception("Email delivery via SendGrid failed for %s", to_email)
+            if delivery_mode == "sendgrid":
+                raise
+            outbox_file = queue_email_file(
+                to_email=to_email,
+                subject=subject,
+                body=body,
+                metadata={
+                    "delivery_mode": "outbox_fallback",
+                    "fallback_reason": str(exc),
+                },
+            )
+            return {
+                "delivery_mode": "outbox_fallback",
+                "outbox_file": str(outbox_file),
+                "fallback_reason": str(exc),
+            }
+
+    outbox_file = queue_email_file(
+        to_email=to_email,
+        subject=subject,
+        body=body,
+        metadata={"delivery_mode": "outbox"},
+    )
+    return {
+        "delivery_mode": "outbox",
+        "outbox_file": str(outbox_file),
+    }
 
 
 def log_support_action(
@@ -143,18 +247,25 @@ def queue_password_reset_email(
         f"Use this reset link:\n{reset_url}\n\n"
         f"This link expires in {settings.password_reset_token_expire_minutes} minutes."
     )
-    email_file = queue_email_file(to_email=delivery_email, subject=subject, body=body)
+    delivery_result = deliver_email(to_email=delivery_email, subject=subject, body=body)
     if requested_by_user:
+        audit_details = {
+            "delivery_email": delivery_email,
+            "reason": reason,
+            "delivery_mode": delivery_result.get("delivery_mode"),
+        }
+        if delivery_result.get("outbox_file"):
+            audit_details["email_outbox_file"] = delivery_result["outbox_file"]
+        if delivery_result.get("sendgrid_status_code") is not None:
+            audit_details["sendgrid_status_code"] = delivery_result["sendgrid_status_code"]
+        if delivery_result.get("sendgrid_message_id"):
+            audit_details["sendgrid_message_id"] = delivery_result["sendgrid_message_id"]
         log_support_action(
             session,
             actor=requested_by_user,
             action="password_reset_email_queued",
             target_user=user,
-            details={
-                "delivery_email": delivery_email,
-                "reason": reason,
-                "email_outbox_file": str(email_file),
-            },
+            details=audit_details,
         )
 
 

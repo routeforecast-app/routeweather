@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     upload_dir: str = str(BASE_DIR / "app" / "static_uploads")
     frontend_app_url: str = "http://127.0.0.1:5173"
     email_outbox_dir: str = str(BASE_DIR / "app" / "static_uploads" / "email_outbox")
+    email_delivery_mode: str = "auto"
+    sendgrid_api_key: str | None = None
+    sendgrid_from_email: str | None = None
+    sendgrid_from_name: str = "RouteForcast"
+    sendgrid_reply_to_email: str | None = None
+    sendgrid_data_residency: str | None = None
     support_user_emails: list[str] = Field(default_factory=list)
     senior_support_user_emails: list[str] = Field(default_factory=list)
     administration_user_emails: list[str] = Field(default_factory=list)

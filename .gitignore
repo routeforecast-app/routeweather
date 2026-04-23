@@ -1,0 +1,8 @@
+backend/.env
+backend/.env.local
+backend/.env.production
+deploy/*.env
+deploy/*.local
+frontend/.env
+frontend/.env.local
+

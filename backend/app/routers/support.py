@@ -36,10 +36,10 @@ from app.services.account_lifecycle_service import (
     reactivate_user,
 )
 from app.services.support_service import (
+    deliver_email,
     find_users_by_support_identity,
     log_support_action,
     normalize_name,
-    queue_email_file,
     queue_password_reset_email,
     support_lookup_summary,
 )
@@ -264,7 +264,7 @@ def change_user_email_for_recovery(
     session.refresh(user)
     user = sync_user_access_state(session, user)
 
-    original_email_notice = queue_email_file(
+    original_email_notice = deliver_email(
         to_email=original_email,
         subject="RouteForcast account email changed",
         body=(
@@ -288,7 +288,10 @@ def change_user_email_for_recovery(
         details={
             "original_email": original_email,
             "new_email": new_email,
-            "original_email_notice_file": str(original_email_notice),
+            "original_email_notice_delivery_mode": original_email_notice.get("delivery_mode"),
+            "original_email_notice_file": original_email_notice.get("outbox_file"),
+            "original_email_notice_sendgrid_status_code": original_email_notice.get("sendgrid_status_code"),
+            "original_email_notice_sendgrid_message_id": original_email_notice.get("sendgrid_message_id"),
         },
     )
     return GenericMessageResponse(
